@@ -181,29 +181,58 @@
         if (document.readyState === 'complete') { autoResizeText(); } 
         else { window.addEventListener('load', autoResizeText); }
 
-        btn.addEventListener('click', () => {
-            // Drop opacity of both button and the input's placeholder instantly
-            btn.classList.add('fade-out');
-            input.classList.add('hide-content');
-            
-            // Clear the input and drop focus to simulate completion
-            input.value = '';
-            input.blur();
+        btn.addEventListener('click', async () => {
+             const inputValue = input.value.trim();
+             if (!inputValue) return; // Don't submit empty strings
 
-            // Elegantly fade both back in in perfect sync after a moment of delay 
-            // The fade in is slow because it uses the base 1.5s transition
-            setTimeout(() => {
-                btn.classList.remove('fade-out');
-                input.classList.remove('hide-content');
-            }, 800); 
-        });
-        
-        // Allow submitting via Enter key
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                btn.click();
-            }
-        });
-    </script>
-</body>
+             // Store value to send, then immediately start the visual fade animations
+             const dataToSend = inputValue;
+             
+             // Drop opacity of both button and the input's placeholder instantly
+             btn.classList.add('fade-out');
+             input.classList.add('hide-content');
+             
+             // Clear the input and drop focus to simulate completion
+             input.value = '';
+             input.blur();
+
+             try {
+                // Determine if it looks like an email or phone for parsing
+                const isEmail = dataToSend.includes('@');
+                const payload = {
+                    email: isEmail ? dataToSend : null,
+                    phone: isEmail ? null : dataToSend
+                };
+
+                // Asynchronously send to the Cloudflare Pages Function
+                await fetch('/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+             } catch (err) {
+                 console.error("Submission failed:", err);
+             }
+
+             // Elegantly fade both back in in perfect sync after a moment of delay 
+             // The fade in is slow because it uses the base 1.5s transition
+             setTimeout(() => {
+                 btn.classList.remove('fade-out');
+                 input.classList.remove('hide-content');
+                 
+                 // Reset font size mapping back to baseline
+                 autoResizeText();
+             }, 800); 
+         });
+         
+         // Allow submitting via Enter key
+         input.addEventListener('keypress', (e) => {
+             if (e.key === 'Enter') {
+                 // Prevent default form submission behavior just in case
+                 e.preventDefault(); 
+                 btn.click();
+             }
+         });
+     </script>
+ </body>
 </html>

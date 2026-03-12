@@ -141,6 +141,46 @@
         const btn = document.getElementById('submitBtn');
         const input = document.getElementById('contactInput');
 
+        // Setup a hidden span element to measure string width
+        const measureSpan = document.createElement('span');
+        measureSpan.style.visibility = 'hidden';
+        measureSpan.style.position = 'absolute';
+        measureSpan.style.whiteSpace = 'pre';
+        document.body.appendChild(measureSpan);
+
+        function autoResizeText() {
+            let currentFontSize = 1.8; // Baseline rem from CSS
+            
+            // Bring in the computed style to perfectly mimic the font rendering rules
+            const computedStyle = window.getComputedStyle(input);
+            measureSpan.style.fontFamily = computedStyle.fontFamily;
+            measureSpan.style.fontWeight = computedStyle.fontWeight;
+            measureSpan.style.letterSpacing = computedStyle.letterSpacing;
+            measureSpan.style.textTransform = computedStyle.textTransform;
+
+            // Evaluate value or placeholder if empty
+            const textToMeasure = input.value || input.placeholder;
+            measureSpan.innerText = textToMeasure;
+            measureSpan.style.fontSize = `${currentFontSize}rem`;
+
+            const maxWidth = input.clientWidth - 20; // 20px padding buffer
+
+            // Continuously shrink text size until the width perfectly fits the screen
+            while (measureSpan.offsetWidth > maxWidth && currentFontSize > 0.6) {
+                currentFontSize -= 0.02;
+                measureSpan.style.fontSize = `${currentFontSize}rem`;
+            }
+
+            // Apply calculated size to the actual input field
+            input.style.fontSize = `${currentFontSize}rem`;
+        }
+
+        // Fire on input typing, and when screen window manually resizes on desktop
+        input.addEventListener('input', autoResizeText);
+        window.addEventListener('resize', autoResizeText);
+        if (document.readyState === 'complete') { autoResizeText(); } 
+        else { window.addEventListener('load', autoResizeText); }
+
         btn.addEventListener('click', () => {
             // Drop opacity of both button and the input's placeholder instantly
             btn.classList.add('fade-out');

@@ -11,20 +11,32 @@
             margin: 0;
             padding: 0;
             background-color: #000;
-            /* Prevent horizontal scrolling if width becomes larger than viewport */
-            overflow-x: hidden; 
+            width: 100%;
+            height: 100%;
+            /* Prevent all scrolling */
+            overflow: hidden; 
         }
+        
+        /* Make the link wrapper fill the screen too */
+        a {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
         .full-width-image {
             display: block;
             width: 100%;
-            height: auto;
-            cursor: pointer;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
         }
     </style>
 </head>
 <body>
     <a href="/collect">
-        <img src="/IMG_20260310_193719.jpg" alt="High Resolution View" class="full-width-image" />
+        <img src="/landingBG.JPG" alt="High Resolution View" class="full-width-image" />
     </a>
 </body>
 </html>

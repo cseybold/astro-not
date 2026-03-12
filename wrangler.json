@@ -10,5 +10,12 @@
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "signup_binding",
+			"database_name": "chaak_signups",
+			"database_id": "7c44388b-0f86-45bd-8637-e20d48db328d"
+		}
+	]
 }

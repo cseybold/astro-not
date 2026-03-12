@@ -1,0 +1,169 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe</title>
+    <!-- Seductive, luxurious, yet clean and readable font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Pure pitch black background */
+            font-family: 'Cinzel', serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem; /* Wide gap to let elements breathe */
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        /* Minimalist Input */
+        input {
+            width: 100%;
+            padding: 1rem 0;
+            font-size: 1.8rem;
+            font-family: 'Cinzel', serif;
+            font-weight: 500; 
+            letter-spacing: 0.15em; 
+            text-transform: uppercase; 
+            background: transparent;
+            border: none;
+            /* Extremely subtle bottom border that glows on focus */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-align: center;
+            outline: none;
+            transition: all 0.5s ease;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 400;
+            transition: color 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* An extra class to handle hiding the placeholder smoothly alongside the button */
+        input.hide-content::placeholder {
+            color: transparent;
+            /* Fast fade out */
+            transition: color 0.15s ease-out !important;
+        }
+
+        input:hover {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        input:focus {
+            border-bottom-color: #fff;
+            box-shadow: 0 10px 10px -10px rgba(255,255,255,0.2); 
+            letter-spacing: 0.18em; /* Subtle breathing effect on focus */
+        }
+
+        input:focus::placeholder {
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* The Custom Icon Button */
+        button {
+            width: 150px; 
+            height: auto;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Smooth transitions for all states. The transition here controls how it fades IN when .fade-out is removed */
+            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* Style the image itself to fit perfectly within the circular button bounds */
+        button img {
+            width: 100%;
+            height: auto;
+            display: block;
+            /* Advanced rendering to fix browser downscaling pixelation/blurring */
+            image-rendering: -webkit-optimize-contrast; 
+            image-rendering: high-quality;
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), filter 0.6s ease;
+        }
+
+        button:hover img {
+            transform: scale(1.08); /* Subtle elegance on hover */
+            filter: brightness(1.2); /* Slight glimmer */
+        }
+
+        button:active img {
+            transform: scale(0.95);
+            transition: all 0.1s;
+        }
+
+        /* The Elegantly Disappearing Class */
+        .fade-out {
+            opacity: 0 !important; /* Force the opacity to 0 */
+            pointer-events: none; /* Disable clicking while it's invisible */
+            transition: opacity 0.15s ease-out !important; /* Forces it to disappear very rapidly */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <input type="text" id="contactInput" placeholder="Email or Phone" autocomplete="off" spellcheck="false" />
+        <!-- Using the requested image as the button content -->
+        <button id="submitBtn" aria-label="Submit">
+            <img src="/uncrackedpodicon.JPG" alt="Submit Icon" />
+        </button>
+    </div>
+
+    <script>
+        const btn = document.getElementById('submitBtn');
+        const input = document.getElementById('contactInput');
+
+        btn.addEventListener('click', () => {
+            // Drop opacity of both button and the input's placeholder instantly
+            btn.classList.add('fade-out');
+            input.classList.add('hide-content');
+            
+            // Clear the input and drop focus to simulate completion
+            input.value = '';
+            input.blur();
+
+            // Elegantly fade both back in in perfect sync after a moment of delay 
+            // The fade in is slow because it uses the base 1.5s transition
+            setTimeout(() => {
+                btn.classList.remove('fade-out');
+                input.classList.remove('hide-content');
+            }, 800); 
+        });
+        
+        // Allow submitting via Enter key
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                btn.click();
+            }
+        });
+    </script>
+</body>
+</html>

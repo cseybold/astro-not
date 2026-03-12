@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+export const prerender = false;
 
 // Setup basic cache for IP-based rate limiting (lives across rapid requests in the same isolate)
 const rateLimitCache = new Map<string, number>();
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
 
 
         // --- 2. Parsing & Validation ---
-        const body = await request.json();
+        const body = (await request.json()) as any;
         let { email, phone } = body;
 
         // Clean inputs
@@ -65,7 +66,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
 
         // --- 3. Extract the D1 Binding from Astro locals ---
         // @ts-ignore - The Cloudflare runtime is injected by the adapter but Typescript may not inherently know the schema
-        const db = locals.runtime?.env?.signup_binding;
+        const db = locals.runtime?.env?.signup_binding as any;
 
         if (!db) {
             console.error("D1 Database binding 'signup_binding' is missing from the Cloudflare runtime env.");

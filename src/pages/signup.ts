@@ -1,15 +1,17 @@
+import type { APIRoute } from 'astro';
+
 // Setup basic cache for IP-based rate limiting (lives across rapid requests in the same isolate)
-const rateLimitCache = new Map();
+const rateLimitCache = new Map<string, number>();
 
 // Helper to check if an email is somewhat valid
-const isValidEmail = (email) => {
+const isValidEmail = (email: any): boolean => {
     // Simple naive regex that catches most invalid structures
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return typeof email === 'string' && email.length < 255 && emailRegex.test(email);
 };
 
 // Helper to remove everything except numbers from a phone string
-const normalizePhone = (phone) => {
+const normalizePhone = (phone: any): string | null => {
     if (typeof phone !== 'string') return null;
     const digitsOnly = phone.replace(/\D/g, '');
     
@@ -20,13 +22,11 @@ const normalizePhone = (phone) => {
     return null; // Reject if it's too short or impossibly long
 };
 
-export async function onRequestPost(context) {
-    const { request, env } = context;
-
+export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     try {
         // --- 1. Rate Limiting (Simple In-Memory Isolate Cache) ---
-        // Grab the Cloudflare connecting IP to prevent spam bots
-        const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+        // Astro provides clientAddress out of the box
+        const ip = clientAddress || 'unknown';
         const now = Date.now();
         
         // Clear old IP records to prevent memory leaks (older than 1 minute)
@@ -35,7 +35,7 @@ export async function onRequestPost(context) {
         }
 
         if (rateLimitCache.has(ip)) {
-            const lastReqTime = rateLimitCache.get(ip);
+            const lastReqTime = rateLimitCache.get(ip)!;
             // Allow 1 request per 10 seconds per IP
             if (now - lastReqTime < 10000) {
                 return new Response(JSON.stringify({ error: "Too many requests. Please wait." }), { 
@@ -63,22 +63,33 @@ export async function onRequestPost(context) {
             });
         }
 
+        // --- 3. Extract the D1 Binding from Astro locals ---
+        // @ts-ignore - The Cloudflare runtime is injected by the adapter but Typescript may not inherently know the schema
+        const db = locals.runtime?.env?.signup_binding;
 
-        // --- 3. Duplicate Prevention via D1 Lookup ---
+        if (!db) {
+            console.error("D1 Database binding 'signup_binding' is missing from the Cloudflare runtime env.");
+            return new Response(JSON.stringify({ error: "Database not configured." }), { 
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+             });
+        }
+
+        // --- 4. Duplicate Prevention via D1 Lookup ---
         // Build our query carefully to see if EITHER exist if both are somehow supplied
         let existingUser = null;
         if (cleanEmail && cleanPhone) {
-            existingUser = await env.signup_binding
+            existingUser = await db
                 .prepare("SELECT id FROM signups WHERE email = ? OR phone = ? LIMIT 1")
                 .bind(cleanEmail, cleanPhone)
                 .first();
         } else if (cleanEmail) {
-            existingUser = await env.signup_binding
+            existingUser = await db
                 .prepare("SELECT id FROM signups WHERE email = ? LIMIT 1")
                 .bind(cleanEmail)
                 .first();
         } else if (cleanPhone) {
-            existingUser = await env.signup_binding
+            existingUser = await db
                 .prepare("SELECT id FROM signups WHERE phone = ? LIMIT 1")
                 .bind(cleanPhone)
                 .first();
@@ -94,8 +105,8 @@ export async function onRequestPost(context) {
         }
 
 
-        // --- 4. Database Insertion ---
-        await env.signup_binding
+        // --- 5. Database Insertion ---
+        await db
             .prepare("INSERT INTO signups (email, phone) VALUES (?, ?)")
             .bind(cleanEmail, cleanPhone)
             .run();
@@ -113,4 +124,4 @@ export async function onRequestPost(context) {
             headers: { 'Content-Type': 'application/json' }
         });
     }
-}
+};

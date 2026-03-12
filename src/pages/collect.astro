@@ -205,7 +205,7 @@
                 };
 
                 // Asynchronously send to the Cloudflare Pages Function
-                await fetch('/collect', {
+                await fetch('/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
